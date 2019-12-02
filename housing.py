@@ -1,7 +1,7 @@
 from random import seed
 from random import choice, randint
 
-import blocking_group
+import blocking_group as bg
 
 # seed random number generator
 seed(1)
@@ -10,7 +10,8 @@ class Housing:
     def __init__(self):
         self.num_rooms = 160
         self.num_students = 280
-        self.rooms = [] # rooms are tuples: (size, proximity, quality)
+        self.rooms = [[] for x in range(9)] # list of lists, where first index is room size
+                                            # rooms are tuples: (size, proximity, quality)
         self.blocking_groups = [] # list of blocking_group objects
 
     def randomly_generate_rooms(self):
@@ -23,7 +24,7 @@ class Housing:
                 room_size = i + 1
                 proximity = randint(1, 10)
                 quality = randint(0, 10)
-                self.rooms.append((room_size, proximity, quality))
+                self.rooms[room_size].append((room_size, proximity, quality))
             i += 1
 
         # print(self.rooms)
@@ -42,6 +43,6 @@ class Housing:
             if block_size > students_remaining:
                 block_size = students_remaining
 
-            self.blocking_groups.append(blocking_group.BlockingGroup(curr_id, block_size))
+            self.blocking_groups.append(bg.BlockingGroup(curr_id, block_size, self))
             students_remaining = students_remaining - block_size
             curr_id += 1
