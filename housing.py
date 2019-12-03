@@ -18,13 +18,16 @@ class Housing:
         ''' generate random room proximities and qualities based on fixed room size distribution '''
         room_size_quantities = [32, 80, 13, 24, 5, 3, 1, 2]
         i = 0
+        # unique id for each room
+        counter = 0
 
         while i < len(room_size_quantities):
             for j in range(room_size_quantities[i]):
-                room_size = i + 1
+                room_id = counter
+                counter += 1
                 proximity = randint(1, 10)
                 quality = randint(0, 10)
-                self.rooms[room_size].append((room_size, proximity, quality))
+                self.rooms[i + 1].append((room_id, proximity, quality))
             i += 1
 
         # print(self.rooms)
