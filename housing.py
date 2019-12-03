@@ -1,5 +1,6 @@
 from random import seed
-from random import choice, randint
+from random import choice, randint, shuffle
+import numpy
 
 import blocking_group as bg
 
@@ -73,11 +74,39 @@ class Housing:
                 rg_config = self.rg_configs[bg.size][0]
                 num_eight_suites = num_eight_suites - 1
 
-            print(rg_config)
             bg.set_rg_config(rg_config)
-
-        # blocking groups rank preferences under committed rooming configurations
-        
+            bg.set_preferences()
 
         # run RSD for all blocking groups
-            # if no rooms left, drop to bottom of lottery and choose randomly at end
+        shuffle(self.blocking_groups)
+        taken_rooms = []
+        for bg in self.blocking_groups:
+            for rg in bg.rg_config:
+                chosen_room = None
+                room_prefs = bg.preferences[rg]
+                i = 0
+                while chosen_room is None:
+                    try:
+                        desired_room = room_prefs[i]
+                        desired_room_id = desired_room[0]
+                        if desired_room_id not in taken_rooms:
+                            chosen_room = desired_room
+                            bg.assigned_rooms.append([rg, chosen_room])
+                            taken_rooms.append(chosen_room[0])
+                        i += 1
+                    except IndexError:
+                        chosen_room = (None, None, 3)
+                        bg.assigned_rooms.append([rg, chosen_room])
+
+        # calculate average quality and standard deviation
+        qualities = []
+
+        for bg in self.blocking_groups:
+            for size, (_, _, quality) in bg.assigned_rooms:
+                addition = [quality for i in range(size)]
+                qualities.extend(addition)
+
+        avg_quality = float(sum(qualities)) / float(self.num_students)
+        sd = numpy.array(qualities).std()
+        print(avg_quality)
+        print(sd)
