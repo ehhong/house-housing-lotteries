@@ -63,6 +63,10 @@ class Housing:
             students_remaining = students_remaining - block_size
             curr_id += 1
 
+    def set_bg_room_prefs(self):
+        for bg in self.blocking_groups:
+            bg.set_preferences()
+
     def run_adams(self):
         ''' run adams house style lottery, returns blocking group assignments '''
         start = time()
@@ -78,7 +82,6 @@ class Housing:
                 num_eight_suites = num_eight_suites - 1
 
             bg.set_rg_config(rg_config)
-            bg.set_preferences()
 
         # generate blocking group preferences
         print("setting ADAMS bg preferences")
@@ -141,10 +144,10 @@ class Housing:
     def run_currier(self):
         start = time()
         # generate blocking group preferences
-        print("setting bg preferences")
+        print("setting CURRIER bg preferences")
         for bg in self.blocking_groups:
             bg.set_full_rg_preferences()
-        print("done setting preferences")
+        print("done setting CURRIER preferences")
 
         # run RSD
         shuffle(self.blocking_groups)
@@ -187,3 +190,4 @@ class Housing:
         print("average: {}".format(avg_quality))
         print("sd: {}".format(sd))
         print("time: {}".format(self.time_elapsed))
+        print
