@@ -8,8 +8,8 @@ def main():
     house.run_adams()
     house.print_lottery_statistics()
 
-    house.run_currier()
-    house.print_lottery_statistics()
+    # house.run_currier()
+    # house.print_lottery_statistics()
 
 if __name__== "__main__":
     main()

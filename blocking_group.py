@@ -40,7 +40,38 @@ class BlockingGroup:
         for i, v in enumerate(self.preferences):
             v.sort(key = lambda x: (x[2], x[1]), reverse = True)
 
-    def set_rg_preferences(self):
+    def set_rg_config_preferences(self):
+        ''' create preference listing for the bg's current rg config '''
+        if (not self.rg_config):
+            print("No RG config set")
+
+        rg_config_combos = []
+
+        # set up rg config in a better form
+        room_size_quantities = dict() # key: size; value: quantity of rooms of that size
+        for rs in self.rg_config:
+            if rs in room_size_quantities:
+                room_size_quantities[rs] += 1
+            else:
+                room_size_quantities[rs] = 1
+
+        # find each combination, and quality score
+        combo_list = [] # list of lists of each combination of rooms
+        for sz, q in room_size_quantities.items():
+            c = map(lambda x: list(x), combinations(self.preferences[sz], q))
+            combo_list.append(c)
+
+        # get all room combinations for this rg config
+        rg_config_combos.extend(get_room_combos(combo_list))
+
+        # get avg quality of rg_config
+        q_rg_config_combos = map(lambda rooms: (get_avg_quality(rooms), rooms), rg_config_combos)
+
+        # sort by quality
+        q_rg_config_combos.sort(key = lambda (q, _): q, reverse=True)
+        self.rg_preferences = q_rg_config_combos
+
+    def set_full_rg_preferences(self):
         ''' create full listing of preferences for full blocking group '''
         all_rg_configs = []
 
@@ -55,8 +86,6 @@ class BlockingGroup:
                     room_size_quantities[rs] += 1
                 else:
                     room_size_quantities[rs] = 1
-
-            # print("room size quants: %s" % (room_size_quantities))
 
             # find each combination, and quality score
             combo_list = [] # list of lists of each combination of rooms
@@ -81,7 +110,6 @@ class BlockingGroup:
 # helper function
 def get_room_combos(combo_list):
     ''' given a list of combos for each size of room, return the full set of room combinations for the rg config '''
-    # print("combo list: %s" % combo_list)
 
     # prefs is a list of lists (room combinations) of currently generated preferences
     def get_room_combos_rec(prefs, idx):
@@ -94,7 +122,6 @@ def get_room_combos(combo_list):
                 return get_room_combos_rec(combo_list[idx], idx + 1)
             else:
                 updated_prefs = []
-                # print("=== PREFS: %s" % prefs)
                 for p in prefs:
                     for r in combo_list[idx]:
 

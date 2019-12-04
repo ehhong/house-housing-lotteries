@@ -80,26 +80,59 @@ class Housing:
             bg.set_rg_config(rg_config)
             bg.set_preferences()
 
-        # run RSD for all blocking groups
+        # generate blocking group preferences
+        print("setting ADAMS bg preferences")
+        for bg in self.blocking_groups:
+            bg.set_rg_config_preferences()
+        print("done setting ADAMS preferences")
+
+        # run RSD
         shuffle(self.blocking_groups)
         taken_rooms = []
         for bg in self.blocking_groups:
-            for rg in bg.rg_config:
-                chosen_room = None
-                room_prefs = bg.preferences[rg]
-                i = 0
-                while chosen_room is None:
-                    try:
-                        desired_room = room_prefs[i]
-                        desired_room_id = desired_room[0]
-                        if desired_room_id not in taken_rooms:
-                            chosen_room = desired_room
-                            bg.assigned_rooms.append(chosen_room)
-                            taken_rooms.append(chosen_room[0])
-                        i += 1
-                    except IndexError: # unallocated by end of lottery
-                        chosen_room = (None, None, 3, bg.size) # default quality 3 for whole bg
-                        bg.assigned_rooms.append(chosen_room)
+            chosen_rooms = []
+            room_prefs = bg.rg_preferences
+            i = 0
+            while chosen_rooms == []:
+                try:
+                    desired_rooms = room_prefs[i]
+                    # check if each room in the combo has been taken
+                    for room in desired_rooms[1]:
+                        room_id = room[0]
+                        if room_id not in taken_rooms:
+                            chosen_rooms.append(room)
+                        else:
+                            chosen_rooms = []
+                            # go to the next combination in the preference order
+                            i += 1
+                            break
+                except IndexError: # unallocated by end of lottery
+                    chosen_rooms = [(None, None, 3, bg.size)] # default quality 3 for whole bg
+
+            # update chosen rooms
+            bg.assigned_rooms = chosen_rooms
+            taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
+
+        # # run RSD for all blocking groups
+        # shuffle(self.blocking_groups)
+        # taken_rooms = []
+        # for bg in self.blocking_groups:
+        #     for rg in bg.rg_config:
+        #         chosen_room = None
+        #         room_prefs = bg.preferences[rg]
+        #         i = 0
+        #         while chosen_room is None:
+        #             try:
+        #                 desired_room = room_prefs[i]
+        #                 desired_room_id = desired_room[0]
+        #                 if desired_room_id not in taken_rooms:
+        #                     chosen_room = desired_room
+        #                     bg.assigned_rooms.append(chosen_room)
+        #                     taken_rooms.append(chosen_room[0])
+        #                 i += 1
+        #             except IndexError: # unallocated by end of lottery
+        #                 chosen_room = (None, None, 3, bg.size) # default quality 3 for whole bg
+        #                 bg.assigned_rooms.append(chosen_room)
 
         end = time()
         self.time_elapsed = end - start
@@ -110,7 +143,7 @@ class Housing:
         # generate blocking group preferences
         print("setting bg preferences")
         for bg in self.blocking_groups:
-            bg.set_rg_preferences()
+            bg.set_full_rg_preferences()
         print("done setting preferences")
 
         # run RSD
