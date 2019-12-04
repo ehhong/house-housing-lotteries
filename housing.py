@@ -1,6 +1,7 @@
 from random import seed
 from random import choice, randint, shuffle
 import numpy
+from time import time
 
 import blocking_group as bg
 
@@ -24,6 +25,7 @@ class Housing:
             7: [[7], [6,1], [5,2], [5,1,1], [4,3], [4,2,1], [3,3,1], [3,2,2]],
             8: [[8], [7,1], [6,2], [6,1,1], [5,3], [5,2,1], [4,4], [4,3,1], [4,2,2], [3,3,2]]
         }
+        self.time_elapsed = None
 
     def randomly_generate_rooms(self):
         ''' generate random room proximities and qualities based on fixed room size distribution '''
@@ -63,6 +65,7 @@ class Housing:
 
     def run_adams(self):
         ''' run adams house style lottery, returns blocking group assignments '''
+        start = time()
         num_eight_suites = 2
 
         # blocking groups choose rooming configurations according to room size distribution/randomly
@@ -98,9 +101,12 @@ class Housing:
                         chosen_room = (None, None, 3, bg.size) # default quality 3 for whole bg
                         bg.assigned_rooms.append(chosen_room)
 
+        end = time()
+        self.time_elapsed = end - start
         return self.blocking_groups
 
     def run_currier(self):
+        start = time()
         # generate blocking group preferences
         print("setting bg preferences")
         for bg in self.blocking_groups:
@@ -130,6 +136,8 @@ class Housing:
             bg.assigned_rooms = chosen_rooms
             taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
 
+        end = time()
+        self.time_elapsed = end - start
         return self.blocking_groups
 
     def print_lottery_statistics(self):
@@ -143,5 +151,6 @@ class Housing:
 
         avg_quality = float(sum(qualities)) / float(self.num_students)
         sd = numpy.array(qualities).std()
-        print(avg_quality)
-        print(sd)
+        print("average: {}".format(avg_quality))
+        print("sd: {}".format(sd))
+        print("time: {}".format(self.time_elapsed))
