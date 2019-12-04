@@ -95,14 +95,42 @@ class Housing:
                             taken_rooms.append(chosen_room[0])
                         i += 1
                     except IndexError: # unallocated by end of lottery
-                        # HI LUCY I CHANGED THIS.... LMK IF ITS WRONG
                         chosen_room = (None, None, 3, bg.size) # default quality 3 for whole bg
                         bg.assigned_rooms.append(chosen_room)
 
         return self.blocking_groups
 
     def run_currier(self):
-        return 0
+        # generate blocking group preferences
+        print("setting bg preferences")
+        for bg in self.blocking_groups:
+            bg.set_rg_preferences()
+        print("done setting preferences")
+
+        # run RSD
+        shuffle(self.blocking_groups)
+        taken_rooms = []
+        for bg in self.blocking_groups:
+            chosen_rooms = []
+            room_prefs = bg.rg_preferences
+            i = 0
+            while chosen_rooms == []:
+                desired_rooms = room_prefs[i]
+                # check if each room in the combo has been taken
+                for room in desired_rooms[1]:
+                    room_id = room[0]
+                    if room_id not in taken_rooms:
+                        chosen_rooms.append(room)
+                    else:
+                        chosen_rooms = []
+                        # go to the next combination in the preference order
+                        i += 1
+                        break
+            # update chosen rooms
+            bg.assigned_rooms = chosen_rooms
+            taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
+
+        return self.blocking_groups
 
     def print_lottery_statistics(self):
         # calculate average quality and standard deviation

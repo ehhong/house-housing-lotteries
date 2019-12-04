@@ -6,10 +6,10 @@ def main():
     house.randomly_generate_blocking_groups()
 
     house.run_adams()
-    # house.print_lottery_statistics()
+    house.print_lottery_statistics()
 
-    # testing currier
-    house.blocking_groups[0].set_rg_preferences()
+    house.run_currier()
+    house.print_lottery_statistics()
 
 if __name__== "__main__":
     main()
