@@ -12,7 +12,7 @@ class Housing:
         self.num_rooms = 160
         self.num_students = 280
         self.rooms = [[] for x in range(9)] # list of lists, where first index is room size
-                                            # rooms are tuples: (size, proximity, quality)
+                                            # rooms are tuples: (room id, proximity, quality)
         self.blocking_groups = [] # list of blocking_group objects
         self.rg_configs = { # maximally 3 rooming groups per blocking group
             1: [[1]],
@@ -62,7 +62,7 @@ class Housing:
             curr_id += 1
 
     def run_adams(self):
-        ''' run adams house style lottery '''
+        ''' run adams house style lottery, returns blocking group assignments '''
         num_eight_suites = 2
 
         # blocking groups choose rooming configurations according to room size distribution/randomly
@@ -91,18 +91,25 @@ class Housing:
                         desired_room_id = desired_room[0]
                         if desired_room_id not in taken_rooms:
                             chosen_room = desired_room
-                            bg.assigned_rooms.append([rg, chosen_room])
+                            bg.assigned_rooms.append(chosen_room)
                             taken_rooms.append(chosen_room[0])
                         i += 1
-                    except IndexError:
-                        chosen_room = (None, None, 3)
-                        bg.assigned_rooms.append([rg, chosen_room])
+                    except IndexError: # unallocated by end of lottery
+                        # HI LUCY I CHANGED THIS.... LMK IF ITS WRONG
+                        chosen_room = (None, None, 3, bg.size) # default quality 3 for whole bg
+                        bg.assigned_rooms.append(chosen_room)
 
+        return self.blocking_groups
+
+    def run_currier(self):
+        return 0
+
+    def print_lottery_statistics(self):
         # calculate average quality and standard deviation
         qualities = []
 
         for bg in self.blocking_groups:
-            for size, (_, _, quality) in bg.assigned_rooms:
+            for (_, _, quality, size) in bg.assigned_rooms:
                 addition = [quality for i in range(size)]
                 qualities.extend(addition)
 
