@@ -6,7 +6,7 @@ from time import time
 import blocking_group as bg
 
 # seed random number generator
-seed(1)
+# seed(1)
 
 class Housing:
     def __init__(self):
@@ -262,4 +262,4 @@ class Housing:
         print("average: {}".format(avg_quality))
         print("sd: {}".format(sd))
         print("time: {}".format(self.time_elapsed))
-        print
+        return(avg_quality, sd, self.time_elapsed)

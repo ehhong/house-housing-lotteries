@@ -1,7 +1,7 @@
 from random import seed, randint, choice
 from itertools import combinations
 
-seed(1)
+# seed(1)
 
 class BlockingGroup:
     def __init__(self, bgid, size, house):
