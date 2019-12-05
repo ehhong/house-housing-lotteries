@@ -13,7 +13,7 @@ class Housing:
         self.num_rooms = 160
         self.num_students = 280
         self.rooms = [[] for x in range(9)] # list of lists, where first index is room size
-                                            # rooms are tuples: (room id, proximity, quality)
+                                            # rooms are tuples: (room id, proximity, quality, size)
         self.blocking_groups = [] # list of blocking_group objects
         self.rg_configs = { # maximally 3 rooming groups per blocking group
             1: [[1]],
@@ -67,14 +67,25 @@ class Housing:
         for bg in self.blocking_groups:
             bg.set_preferences()
 
-    def run_adams(self):
-        ''' run adams house style lottery, returns blocking group assignments '''
+    def run_adams(self, is_random_rg_config):
+        ''' run adams house style lottery, returns blocking group assignments.
+            is_random_rg_config := true means randomly assigning committed rg configs '''
+
+        #testing
+        for bg in self.blocking_groups:
+            bg.set_general_rg_preferences()
+
+        if (is_random_rg_config):
+            print("=== Running ADAMS with random RG configs ===")
+        else:
+            print("=== Running ADAMS with opt RG configs ===")
+
         start = time()
 
         # blocking groups choose rooming configurations according to room size distribution/randomly
         for bg in self.blocking_groups:
             rg_config = choice(self.rg_configs[bg.size])
-            bg.set_rg_config(rg_config)
+            bg.set_rg_config(is_random_rg_config)
 
         # generate blocking group preferences
         print("setting ADAMS bg preferences")
@@ -85,6 +96,8 @@ class Housing:
         # run RSD
         shuffle(self.blocking_groups)
         taken_rooms = []
+        unallocated_ppl_count = 0
+
         for bg in self.blocking_groups:
             chosen_rooms = []
             room_prefs = bg.rg_preferences
@@ -103,11 +116,13 @@ class Housing:
                             i += 1
                             break
                 except IndexError: # unallocated by end of lottery
+                    unallocated_ppl_count += bg.size
                     chosen_rooms = [(None, None, 3, bg.size)] # default quality 3 for whole bg
 
             # update chosen rooms
             bg.assigned_rooms = chosen_rooms
-            taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
+            if (chosen_rooms[0][0]): # if actual room allocated
+                taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
 
         # # run RSD for all blocking groups
         # shuffle(self.blocking_groups)
@@ -132,6 +147,9 @@ class Housing:
 
         end = time()
         self.time_elapsed = end - start
+
+        print("# of unallocated people: %i" % unallocated_ppl_count)
+
         return self.blocking_groups
 
     def run_currier(self):

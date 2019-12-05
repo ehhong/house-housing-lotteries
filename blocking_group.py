@@ -1,4 +1,4 @@
-from random import seed, randint
+from random import seed, randint, choice
 from itertools import combinations
 
 seed(1)
@@ -72,6 +72,38 @@ class BlockingGroup:
         q_rg_config_combos.sort(key = lambda (q, _): q, reverse=True)
         self.rg_preferences = q_rg_config_combos
 
+    def set_general_rg_preferences(self):
+        ''' create listing of preferences for currier general lottery (room size <= 4)'''
+        gen_rg_configs = []
+
+        # for each rg configuration
+        rg_configs = filter(lambda r_lst: max(r_lst) <= 4, self.rg_configs[self.size])
+
+        for rg_config in rg_configs:
+            # set up rg config in a better form
+            room_size_quantities = dict() # key: size; value: quantity of rooms of that size
+            for rs in rg_config:
+                if rs in room_size_quantities:
+                    room_size_quantities[rs] += 1
+                else:
+                    room_size_quantities[rs] = 1
+
+            # find each combination, and quality score
+            combo_list = [] # list of lists of each combination of rooms
+            for sz, q in room_size_quantities.items():
+                c = map(lambda x: list(x), combinations(self.preferences[sz], q))
+                combo_list.append(c)
+
+            # get all room combinations for this rg config
+            gen_rg_configs.extend(get_room_combos(combo_list))
+
+        # get avg quality of rg_config
+        q_gen_rg_configs = map(lambda rooms: (get_avg_quality(rooms), rooms), gen_rg_configs)
+
+        # sort by quality
+        q_gen_rg_configs.sort(key = lambda (q, _): q, reverse=True)
+        self.rg_preferences = q_gen_rg_configs
+
     def set_full_rg_preferences(self):
         ''' create full listing of preferences for full blocking group '''
         all_rg_configs = []
@@ -104,9 +136,42 @@ class BlockingGroup:
         q_all_rg_configs.sort(key = lambda (q, _): q, reverse=True)
         self.rg_preferences = q_all_rg_configs
 
-    def set_rg_config(self, rg_config):
-        ''' rg_config should be a tuple '''
-        self.rg_config = rg_config
+    def set_rg_config(self, is_random):
+        ''' set rg_config to be best rg average from room qualities, or randomly '''
+
+        if (is_random):
+            self.rg_config = choice(self.rg_configs[self.size])
+        # set rg_config to be best rg average from room qualities
+        else:
+            if (len(self.preferences) == 0):
+                print("ERROR! room preferences not set yet")
+
+            room_qual_averages = [0 for i in range(9)] # indexed by size
+
+            # get room quality averages by room size
+            i = 1
+            for room_list in self.preferences[1:]:
+                room_list_qualities = map(lambda room: room[2], room_list)
+                room_qual_averages[i] = float(sum(room_list_qualities)) / float(len(room_list))
+                i += 1
+
+            # get averages for each possible rg configuration, return max
+            possible_rg_configs = self.rg_configs[self.size]
+            opt_rg_config = []
+            opt_rg_c_avg = 0
+
+            for rg_config in possible_rg_configs:
+                total = 0
+                for rs in rg_config:
+                    total += rs * room_qual_averages[rs]
+
+                rg_c_avg = total / float(self.size)
+
+                if rg_c_avg > opt_rg_c_avg:
+                    opt_rg_c_avg = rg_c_avg
+                    opt_rg_config = rg_config
+
+            self.rg_config = opt_rg_config
 
 # helper function
 def get_room_combos(combo_list):
@@ -114,7 +179,6 @@ def get_room_combos(combo_list):
 
     # prefs is a list of lists (room combinations) of currently generated preferences
     def get_room_combos_rec(prefs, idx):
-
         # base case
         if idx >= len(combo_list):
             return prefs
