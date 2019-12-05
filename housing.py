@@ -67,7 +67,7 @@ class Housing:
         for bg in self.blocking_groups:
             bg.set_preferences()
 
-    def run_adams(self, is_random_rg_config):
+    def run_adams(self, is_random_rg_config = True):
         ''' run adams house style lottery, returns blocking group assignments.
             is_random_rg_config := true means randomly assigning committed rg configs '''
 
@@ -153,6 +153,7 @@ class Housing:
         return self.blocking_groups
 
     def run_currier(self):
+        print("=== Running CURRIER ===")
         start = time()
         # generate blocking group preferences
         print("setting CURRIER bg preferences")
@@ -188,12 +189,8 @@ class Housing:
         return self.blocking_groups
 
     def run_dunster(self):
+        print("=== Running DUNSTER ===")
         start = time()
-        # generate blocking group preferences
-        # print("setting DUNSTER bg preferences")
-        # for bg in self.blocking_groups:
-        #     bg.set_full_rg_preferences()
-        # print("done setting DUNSTER preferences")
 
         # decide who enters specialized housing lottery
         for bg in self.blocking_groups:
@@ -207,6 +204,7 @@ class Housing:
                 bg.specialized = True
 
         # run specialized lottery
+        print("running specialized lottery")
         shuffle(self.blocking_groups)
         taken_rooms = []
         for bg in self.blocking_groups:
@@ -221,6 +219,34 @@ class Housing:
                 if chosen_room is None:
                     # drop down to general lottery
                     bg.specialized = False
+
+        # run general lottery
+        print("running general lottery")
+        for bg in self.blocking_groups:
+            if not bg.specialized:
+                bg.set_general_rg_preferences()
+                chosen_rooms = []
+                room_prefs = bg.rg_preferences
+                i = 0
+                while chosen_rooms == []:
+                    desired_rooms = room_prefs[i]
+                    # check if each room in the combo has been taken
+                    for room in desired_rooms[1]:
+                        room_id = room[0]
+                        if room_id not in taken_rooms:
+                            chosen_rooms.append(room)
+                        else:
+                            chosen_rooms = []
+                            # go to the next combination in the preference order
+                            i += 1
+                            break
+                # update chosen rooms
+                bg.assigned_rooms = chosen_rooms
+                taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
+
+        end = time()
+        self.time_elapsed = end - start
+        return self.blocking_groups
 
     def print_lottery_statistics(self):
         # calculate average quality and standard deviation
