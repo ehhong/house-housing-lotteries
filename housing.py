@@ -169,6 +169,41 @@ class Housing:
         self.time_elapsed = end - start
         return self.blocking_groups
 
+    def run_dunster(self):
+        start = time()
+        # generate blocking group preferences
+        # print("setting DUNSTER bg preferences")
+        # for bg in self.blocking_groups:
+        #     bg.set_full_rg_preferences()
+        # print("done setting DUNSTER preferences")
+
+        # decide who enters specialized housing lottery
+        for bg in self.blocking_groups:
+            best_size = (-1, -1)
+            for room_size in bg.preferences[1:]:
+                qualities = [quality for (_, _, quality, size) in room_size]
+                avg_quality = float(sum(qualities)) / float(len(room_size))
+                if avg_quality > best_size[1]:
+                    best_size = (size, avg_quality)
+            if best_size[0] >= 5 and best_size[0] == bg.size:
+                bg.specialized = True
+
+        # run specialized lottery
+        shuffle(self.blocking_groups)
+        taken_rooms = []
+        for bg in self.blocking_groups:
+            if bg.specialized:
+                chosen_room = None
+                for room in bg.preferences[bg.size]:
+                    if room[0] not in taken_rooms:
+                        chosen_room = room
+                        bg.assigned_rooms = [chosen_room]
+                        taken_rooms.append(room[0])
+                        break
+                if chosen_room is None:
+                    # drop down to general lottery
+                    bg.specialized = False
+
     def print_lottery_statistics(self):
         # calculate average quality and standard deviation
         qualities = []

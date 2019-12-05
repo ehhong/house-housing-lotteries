@@ -12,5 +12,7 @@ def main():
     house.run_currier()
     house.print_lottery_statistics()
 
+    house.run_dunster()
+
 if __name__== "__main__":
     main()
