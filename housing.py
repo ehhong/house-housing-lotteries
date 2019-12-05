@@ -69,7 +69,8 @@ class Housing:
 
     def run_adams(self, is_random_rg_config = True):
         ''' run adams house style lottery, returns blocking group assignments.
-            is_random_rg_config := true means randomly assigning committed rg configs '''
+            is_random_rg_config := true means randomly assigning committed rg configs
+            return # of unallocated people '''
 
         #testing
         for bg in self.blocking_groups:
@@ -124,33 +125,12 @@ class Housing:
             if (chosen_rooms[0][0]): # if actual room allocated
                 taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
 
-        # # run RSD for all blocking groups
-        # shuffle(self.blocking_groups)
-        # taken_rooms = []
-        # for bg in self.blocking_groups:
-        #     for rg in bg.rg_config:
-        #         chosen_room = None
-        #         room_prefs = bg.preferences[rg]
-        #         i = 0
-        #         while chosen_room is None:
-        #             try:
-        #                 desired_room = room_prefs[i]
-        #                 desired_room_id = desired_room[0]
-        #                 if desired_room_id not in taken_rooms:
-        #                     chosen_room = desired_room
-        #                     bg.assigned_rooms.append(chosen_room)
-        #                     taken_rooms.append(chosen_room[0])
-        #                 i += 1
-        #             except IndexError: # unallocated by end of lottery
-        #                 chosen_room = (None, None, 3, bg.size) # default quality 3 for whole bg
-        #                 bg.assigned_rooms.append(chosen_room)
-
         end = time()
         self.time_elapsed = end - start
 
         print("# of unallocated people: %i" % unallocated_ppl_count)
 
-        return self.blocking_groups
+        return unallocated_ppl_count
 
     def run_currier(self):
         print("=== Running CURRIER ===")
