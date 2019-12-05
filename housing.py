@@ -13,7 +13,7 @@ class Housing:
         self.num_rooms = 160
         self.num_students = 280
         self.rooms = [[] for x in range(9)] # list of lists, where first index is room size
-                                            # rooms are tuples: (room id, proximity, quality)
+                                            # rooms are tuples: (room id, proximity, quality, size)
         self.blocking_groups = [] # list of blocking_group objects
         self.rg_configs = { # maximally 3 rooming groups per blocking group
             1: [[1]],
@@ -114,7 +114,8 @@ class Housing:
 
             # update chosen rooms
             bg.assigned_rooms = chosen_rooms
-            taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
+            if (chosen_rooms[0][0]): # if actual room allocated
+                taken_rooms.extend([room_id for (room_id, _, _, _) in chosen_rooms])
 
         # # run RSD for all blocking groups
         # shuffle(self.blocking_groups)
