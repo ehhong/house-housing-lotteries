@@ -70,17 +70,10 @@ class Housing:
     def run_adams(self):
         ''' run adams house style lottery, returns blocking group assignments '''
         start = time()
-        num_eight_suites = 2
 
         # blocking groups choose rooming configurations according to room size distribution/randomly
         for bg in self.blocking_groups:
             rg_config = choice(self.rg_configs[bg.size])
-
-            # ensure that all 8-man suites are requested
-            if bg.size == 8 and num_eight_suites > 0:
-                rg_config = self.rg_configs[bg.size][0]
-                num_eight_suites = num_eight_suites - 1
-
             bg.set_rg_config(rg_config)
 
         # generate blocking group preferences
